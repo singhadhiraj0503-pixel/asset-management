@@ -12,6 +12,33 @@ const pool = new Pool({
   max: 10,
 });
 
+// TEMPORARY DEBUG
+pool
+  .query(
+    `
+    SELECT
+      current_database(),
+      current_schema(),
+      current_user
+  `,
+  )
+  .then((result) => {
+    console.log("DATABASE CONNECTION:", result.rows[0]);
+  });
+
+pool
+  .query(
+    `
+    SELECT table_schema, table_name
+    FROM information_schema.tables
+    WHERE table_schema = 'public'
+    ORDER BY table_name
+  `,
+  )
+  .then((result) => {
+    console.log("TABLES SEEN BY NEXT.JS:", result.rows);
+  });
+
 export const db = drizzle({ client: pool });
 
 export const getClient = async () => {
