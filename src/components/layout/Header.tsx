@@ -2,7 +2,7 @@
 
 import { LogOut, Moon, Package, Sun } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import React from "react";
 import {
   DropdownMenu,
@@ -15,17 +15,28 @@ import {
 } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
 import { useTheme } from "next-themes";
-import { useSession } from "@/lib/auth-client";
-import { Avatar, AvatarFallback } from "../ui/avatar";
+import { signOut, useSession } from "@/lib/auth-client";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
 const Header = () => {
   const { setTheme } = useTheme();
+  const router = useRouter();
   const pathName = usePathname();
   const isLoginPage: boolean = pathName === "/login";
 
   const { data: session, isPending } = useSession();
   const user = session?.user;
   const isAdminUser = user?.role === "admin";
+
+  const handleLogout = async () => {
+    await signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          router.push("/");
+        },
+      },
+    });
+  };
 
   if (isLoginPage) return null;
   return (
@@ -42,12 +53,14 @@ const Header = () => {
           </Link>
 
           <nav className="flex items-center gap-5 ">
-            <Link
-              href={"/gallery"}
-              className="text-sm font-medium hover:text-teal-500"
-            >
-              Gallery
-            </Link>
+            {!isPending && user && isAdminUser ? null : (
+              <Link
+                href={"/gallery"}
+                className="text-sm font-medium hover:text-teal-500"
+              >
+                Gallery
+              </Link>
+            )}
             {!isPending && user && !isAdminUser && (
               <>
                 <Link
@@ -122,6 +135,14 @@ const Header = () => {
                 aria-label="Open user menu"
               >
                 <Avatar className="size-8 border border-slate-300">
+                  {user.image && (
+                    <AvatarImage
+                      src={user.image}
+                      alt={user.name || "User avatar"}
+                      referrerPolicy="no-referrer"
+                    />
+                  )}
+
                   <AvatarFallback className="bg-teal-500 text-white">
                     {user.name ? user.name.charAt(0).toUpperCase() : "U"}
                   </AvatarFallback>
@@ -144,8 +165,8 @@ const Header = () => {
                 <DropdownMenuSeparator />
 
                 <DropdownMenuItem
+                  onClick={handleLogout}
                   className="cursor-pointer text-red-500 focus:text-red-500"
-                  // onClick={() => signOut()}
                 >
                   <LogOut className="mr-2 size-4" />
                   Logout

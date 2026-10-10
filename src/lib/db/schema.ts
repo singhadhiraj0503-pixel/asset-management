@@ -1,5 +1,14 @@
 import { relations } from "drizzle-orm/_relations";
-import { pgTable, text, timestamp, boolean, index } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  timestamp,
+  boolean,
+  index,
+  serial,
+  uuid,
+  integer,
+} from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -78,9 +87,37 @@ export const verification = pgTable(
   (table) => [index("verification_identifier_idx").on(table.identifier)],
 );
 
+export const category = pgTable("category", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  createdAt: timestamp("created_at")
+    .$defaultFn(() => new Date())
+    .notNull(),
+});
+
+export const asset = pgTable("asset", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  title: text("text").notNull(),
+  description: text("description"),
+  fileUrl: text("file_url").notNull(),
+  thumbnailUrl: text("thumbnail_url"),
+  isApproved: text("is_approved").default("pending").notNull(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  categoryId: integer("category_id").references(() => category.id),
+  createdAt: timestamp("created_at")
+    .$defaultFn(() => new Date())
+    .notNull(),
+  updatedAt: timestamp("updated_at")
+    .$defaultFn(() => new Date())
+    .notNull(),
+});
+
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
+  assets: many(asset),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -94,5 +131,20 @@ export const accountRelations = relations(account, ({ one }) => ({
   user: one(user, {
     fields: [account.userId],
     references: [user.id],
+  }),
+}));
+
+export const categoryRelations = relations(category, ({ many }) => ({
+  assets: many(asset),
+}));
+
+export const assetRelations = relations(asset, ({ one, many }) => ({
+  users: one(user, {
+    fields: [asset.userId],
+    references: [user.id],
+  }),
+  category: one(category, {
+    fields: [asset.categoryId],
+    references: [category.id],
   }),
 }));
