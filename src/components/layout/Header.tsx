@@ -3,7 +3,6 @@
 import { LogOut, Moon, Package, Sun } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import React from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,19 +11,20 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
-import { Button } from "../ui/button";
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from "next-themes";
 import { signOut, useSession } from "@/lib/auth-client";
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
 const Header = () => {
   const { setTheme } = useTheme();
   const router = useRouter();
-  const pathName = usePathname();
-  const isLoginPage: boolean = pathName === "/login";
+  const pathname = usePathname();
 
+  const isLoginPage = pathname === "/login";
   const { data: session, isPending } = useSession();
+
   const user = session?.user;
   const isAdminUser = user?.role === "admin";
 
@@ -33,90 +33,133 @@ const Header = () => {
       fetchOptions: {
         onSuccess: () => {
           router.push("/");
+          router.refresh();
         },
       },
     });
   };
 
   if (isLoginPage) return null;
+
+  const navItems = isAdminUser
+    ? [
+        {
+          label: "Asset Approval",
+          href: "/admin/asset-approval",
+        },
+        {
+          label: "Settings",
+          href: "/admin/settings",
+        },
+      ]
+    : [
+        {
+          label: "Gallery",
+          href: "/gallery",
+        },
+        ...(user
+          ? [
+              {
+                label: "Assets",
+                href: "/dashboard/assets",
+              },
+              {
+                label: "My Purchases",
+                href: "/dashboard/purchases",
+              },
+            ]
+          : []),
+      ];
+
+  const displayName = user?.name?.trim() || "User";
+  const userInitial = displayName.charAt(0).toUpperCase();
+  const userRole = isAdminUser ? "Super Admin" : "Asset Contributor";
+
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 border-b">
-      <div className="container h-16 flex items-center justify-between px-4">
-        <div className="flex items-center gap-8">
-          <Link href={"/"} className="flex items-center gap-2">
-            <div className="p-2 rounded-md bg-teal-500">
-              <Package className="size-4 text-white" />
-            </div>
-            <span className="font-semibold text-lg text-teal-500">
+    <header className="fixed inset-x-0 top-0 z-50 h-[60px] border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/90">
+      <div className="mx-auto flex h-full w-full max-w-[1600px] items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+        {/* Logo and brand */}
+        <div className="flex min-w-0 items-center gap-5 sm:gap-8">
+          <Link
+            href="/"
+            className="flex shrink-0 items-center gap-2.5"
+            aria-label="Asset Platform home"
+          >
+            <span className="flex size-9 items-center justify-center rounded-lg border border-emerald-500/40 bg-emerald-500/5">
+              <Package className="size-5 text-emerald-400" />
+            </span>
+
+            <span className="hidden whitespace-nowrap text-sm font-semibold tracking-tight text-foreground sm:inline">
               Asset Platform
+            </span>
+
+            <span className="hidden rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-[9px] font-semibold tracking-wide text-emerald-400 md:inline-flex">
+              PRO
             </span>
           </Link>
 
-          <nav className="flex items-center gap-5 ">
-            {!isPending && user && isAdminUser ? null : (
-              <Link
-                href={"/gallery"}
-                className="text-sm font-medium hover:text-teal-500"
-              >
-                Gallery
-              </Link>
-            )}
-            {!isPending && user && !isAdminUser && (
-              <>
-                <Link
-                  href={"/dashboard/assets"}
-                  className="text-sm font-medium hover:text-teal-500"
-                >
-                  Assests
-                </Link>
+          {/* Navigation */}
+          <nav
+            aria-label="Main navigation"
+            className="flex h-[60px] min-w-0 items-center gap-1 overflow-x-auto"
+          >
+            {navItems.map((item) => {
+              const isActive =
+                pathname === item.href || pathname.startsWith(`${item.href}/`);
 
+              return (
                 <Link
-                  href={"/dashboard/purchases"}
-                  className="text-sm font-medium hover:text-teal-500"
+                  key={item.href}
+                  href={item.href}
+                  aria-current={isActive ? "page" : undefined}
+                  className={`relative flex h-full shrink-0 items-center px-3 text-xs font-medium transition-colors sm:px-4 sm:text-sm ${
+                    isActive
+                      ? "text-foreground"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
                 >
-                  My Puchases
-                </Link>
-              </>
-            )}
+                  {isActive && (
+                    <span className="absolute inset-x-1 bottom-0 h-0.5 rounded-full bg-emerald-500" />
+                  )}
 
-            {!isPending && user && isAdminUser && (
-              <>
-                <Link
-                  href={"/admin/asset-approval"}
-                  className="text-sm font-medium hover:text-teal-500"
-                >
-                  Assest Approval
-                </Link>
+                  {isActive && (
+                    <span className="absolute inset-x-1 top-1/2 -translate-y-1/2 rounded-md border border-border bg-muted/60 py-3" />
+                  )}
 
-                <Link
-                  href={"/admin/settings"}
-                  className="text-sm font-medium hover:text-teal-500"
-                >
-                  Settings
+                  <span className="relative z-10 whitespace-nowrap">
+                    {item.label}
+                  </span>
                 </Link>
-              </>
-            )}
+              );
+            })}
           </nav>
         </div>
 
-        <div className="flex items-center gap-4">
-          {/* Toggle theme */}
+        {/* Theme and account */}
+        <div className="flex shrink-0 items-center gap-3 sm:gap-4">
+          {/* Theme toggle */}
           <DropdownMenu>
-            <DropdownMenuTrigger
-              type="button"
-              className="inline-flex size-10 items-center justify-center rounded-lg border border-input bg-background hover:bg-accent hover:text-accent-foreground"
-              aria-label="Toggle theme"
-            >
-              <Sun className="size-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-              <Moon className="absolute size-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                aria-label="Change theme"
+                className="size-9 rounded-lg border-border bg-muted/30 text-muted-foreground hover:bg-accent hover:text-foreground"
+              >
+                <Sun className="size-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                <Moon className="absolute size-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+              </Button>
             </DropdownMenuTrigger>
 
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end" sideOffset={8}>
               <DropdownMenuItem onClick={() => setTheme("light")}>
+                <Sun className="mr-2 size-4" />
                 Light
               </DropdownMenuItem>
 
               <DropdownMenuItem onClick={() => setTheme("dark")}>
+                <Moon className="mr-2 size-4" />
                 Dark
               </DropdownMenuItem>
 
@@ -126,38 +169,72 @@ const Header = () => {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Avatar */}
+          {/* Vertical separator */}
+          <div className="hidden h-7 w-px bg-border sm:block" />
+
+          {/* User account */}
           {!isPending && user ? (
             <DropdownMenu>
-              <DropdownMenuTrigger
-                type="button"
-                className="inline-flex size-8 items-center justify-center rounded-full p-0 hover:bg-accent"
-                aria-label="Open user menu"
-              >
-                <Avatar className="size-8 border border-slate-300">
-                  {user.image && (
-                    <AvatarImage
-                      src={user.image}
-                      alt={user.name || "User avatar"}
-                      referrerPolicy="no-referrer"
-                    />
-                  )}
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  aria-label="Open user account menu"
+                  className="flex min-w-0 items-center gap-2.5 rounded-lg outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                >
+                  <Avatar className="size-9 shrink-0 border border-emerald-500/30">
+                    {user.image && (
+                      <AvatarImage
+                        src={user.image}
+                        alt={displayName}
+                        referrerPolicy="no-referrer"
+                      />
+                    )}
 
-                  <AvatarFallback className="bg-teal-500 text-white">
-                    {user.name ? user.name.charAt(0).toUpperCase() : "U"}
-                  </AvatarFallback>
-                </Avatar>
+                    <AvatarFallback className="bg-emerald-500 text-xs font-semibold text-black">
+                      {userInitial}
+                    </AvatarFallback>
+                  </Avatar>
+
+                  {/* Hide account text on smaller screens */}
+                  <span className="hidden min-w-0 text-left sm:block">
+                    <span className="block max-w-32 truncate text-xs font-semibold text-foreground">
+                      {displayName}
+                    </span>
+                    <span className="mt-0.5 block max-w-32 truncate text-[10px] text-muted-foreground">
+                      {userRole}
+                    </span>
+                  </span>
+                </button>
               </DropdownMenuTrigger>
 
-              <DropdownMenuContent align="end" sideOffset={8} className="w-56">
+              <DropdownMenuContent align="end" sideOffset={8} className="w-64">
                 <DropdownMenuGroup>
-                  <DropdownMenuLabel>
-                    <div className="flex flex-col gap-1">
-                      <p className="text-sm font-medium">{user.name}</p>
+                  <DropdownMenuLabel className="p-3">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <Avatar className="size-10 shrink-0">
+                        {user.image && (
+                          <AvatarImage
+                            src={user.image}
+                            alt={displayName}
+                            referrerPolicy="no-referrer"
+                          />
+                        )}
+                        <AvatarFallback className="bg-emerald-500 text-black">
+                          {userInitial}
+                        </AvatarFallback>
+                      </Avatar>
 
-                      <p className="text-xs text-muted-foreground">
-                        {user.email}
-                      </p>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-foreground">
+                          {displayName}
+                        </p>
+                        <p className="truncate text-xs font-normal text-muted-foreground">
+                          {user.email}
+                        </p>
+                        <p className="mt-1 text-[10px] font-medium text-emerald-500">
+                          {userRole}
+                        </p>
+                      </div>
                     </div>
                   </DropdownMenuLabel>
                 </DropdownMenuGroup>
@@ -166,22 +243,26 @@ const Header = () => {
 
                 <DropdownMenuItem
                   onClick={handleLogout}
-                  className="cursor-pointer text-red-500 focus:text-red-500"
+                  className="cursor-pointer text-destructive focus:text-destructive"
                 >
                   <LogOut className="mr-2 size-4" />
                   Logout
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+          ) : !isPending ? (
+            <Button
+              asChild
+              size="sm"
+              className="bg-emerald-500 text-black hover:bg-emerald-400"
+            >
+              <Link href="/login">Login</Link>
+            </Button>
           ) : (
-            <Link href="/login">
-              <Button
-                type="button"
-                className="bg-teal-500 hover:bg-teal-700 text-white"
-              >
-                Login
-              </Button>
-            </Link>
+            <div
+              className="size-9 animate-pulse rounded-full bg-muted"
+              aria-label="Loading account"
+            />
           )}
         </div>
       </div>

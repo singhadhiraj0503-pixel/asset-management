@@ -128,3 +128,54 @@ export const deleteCategoryAction = async (categoryId: number) => {
     };
   }
 };
+
+export const updateCategoryAction = async (
+  categoryId: number,
+  name: string,
+) => {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.user || session.user.role !== "admin") {
+    throw new Error("You must be an admin to update categories");
+  }
+
+  try {
+    const validated = CategorySchema.parse({
+      name: name.trim(),
+    });
+
+    const existingCategory = await db
+      .select()
+      .from(category)
+      .where(eq(category.name, validated.name))
+      .limit(1);
+
+    if (existingCategory.some((item) => item.id !== categoryId)) {
+      return {
+        success: false,
+        message: "That category name is already in use.",
+      };
+    }
+
+    await db
+      .update(category)
+      .set({ name: validated.name })
+      .where(eq(category.id, categoryId));
+
+    revalidatePath("/admin/settings");
+
+    return {
+      success: true,
+      message: "Category updated successfully.",
+    };
+  } catch (error) {
+    console.error("Failed to update category:", error);
+
+    return {
+      success: false,
+      message: "Failed to update category.",
+    };
+  }
+};
