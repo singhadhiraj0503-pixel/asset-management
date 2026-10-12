@@ -1,10 +1,26 @@
-import { getCategoriesAction } from "@/actions/dashboard-actions";
+import {
+  getCategoriesAction,
+  getUserAssetsAction,
+} from "@/actions/dashboard-actions";
 import AssetGrid from "@/components/dashboard/asset-grid";
 import UploadAsset from "@/components/dashboard/upload-asset";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 import React from "react";
 
 const AssetsPage = async () => {
-  const [categories] = await Promise.all([getCategoriesAction()]);
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (session === null) return null;
+
+  const [categories, assets] = await Promise.all([
+    getCategoriesAction(),
+    getUserAssetsAction(session?.user?.id),
+  ]);
+
+  console.log(assets, "assets");
 
   return (
     <div className="container py-15">

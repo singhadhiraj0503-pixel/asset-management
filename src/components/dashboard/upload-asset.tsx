@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { uploadAssetAction } from "@/actions/dashboard-actions";
 
 type Category = {
   id: number;
@@ -146,7 +147,26 @@ const UploadAsset = ({ categories }: UploadDialogProps) => {
       formData.append("categoryId", formState.categoryId);
       formData.append("fileUrl", cloudinaryResponse.secure_url);
       formData.append("thumbnailUrl", cloudinaryResponse.secure_url);
-    } catch (error) {}
+
+      // uploading this asset to the database
+      const result = await uploadAssetAction(formData);
+      if (result.success) {
+        setOpen(false);
+        setFormState({
+          title: "",
+          description: "",
+          categoryId: "",
+          file: null,
+        });
+      } else {
+        throw new Error(result?.error);
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsUploading(false);
+      setUploadProgressStatus(0);
+    }
   };
 
   // console.log(formState);
@@ -216,7 +236,19 @@ const UploadAsset = ({ categories }: UploadDialogProps) => {
               accept="image/*"
             />
           </div>
-          <DialogFooter>
+
+          {isUploading && uploadProgressStatus > 0 && (
+            <div className="mb-5 w-full bg-stone-100 rounded-full h-2">
+              <div
+                className="bg-emerald-700 h-2 rounded-full"
+                style={{ width: `${uploadProgressStatus}%` }}
+              />
+              <p className="text-xs text-slate-500 mt-2 text-right">
+                {uploadProgressStatus}% upload
+              </p>
+            </div>
+          )}
+          <DialogFooter className="mt-5">
             <Button type="submit">
               <Upload className="size-5 mr-2" />
               Upload Asset
