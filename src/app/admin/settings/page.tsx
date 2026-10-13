@@ -1,5 +1,6 @@
 import {
   getAllCategoriesAction,
+  getTotalAssetsCountAction,
   getTotalUsersCountAction,
 } from "@/actions/admin-actions";
 import CategoryManager from "@/components/admin/category-manager";
@@ -16,9 +17,10 @@ import {
 import Link from "next/link";
 
 const SettingsPage = async () => {
-  const [categories, userCount] = await Promise.all([
+  const [categories, userCount, assetsCount] = await Promise.all([
     getAllCategoriesAction(),
     getTotalUsersCountAction(),
+    getTotalAssetsCountAction(),
   ]);
 
   const stats = [
@@ -32,7 +34,7 @@ const SettingsPage = async () => {
     },
     {
       label: "TOTAL ASSETS",
-      value: "500",
+      value: assetsCount,
       description: "All published assets across repos",
       icon: Package,
       badge: "Verified",
