@@ -114,10 +114,65 @@ export const asset = pgTable("asset", {
     .notNull(),
 });
 
+export const payment = pgTable("payment", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  amount: integer("amount").notNull(),
+  currency: text("currency").default("INR").notNull(),
+  status: text("status").notNull(),
+  provider: text("provider").notNull(),
+  providerId: text("provider_id"),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id),
+  createdAt: timestamp("created_at")
+    .$defaultFn(() => new Date())
+    .notNull(),
+});
+
+export const purchase = pgTable("purchase", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  assetId: uuid("asset_id")
+    .notNull()
+    .references(() => asset.id, { onDelete: "restrict" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  paymentId: uuid("payment_id")
+    .notNull()
+    .references(() => payment.id),
+  price: integer("price").notNull(),
+  createdAt: timestamp("created_at")
+    .$defaultFn(() => new Date())
+    .notNull(),
+});
+
+export const invoice = pgTable("invoice", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  invoiceNumber: text("invoice_number").notNull().unique(),
+  purchaseId: uuid("purchase_id")
+    .notNull()
+    .references(() => purchase.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  amount: integer("amount").notNull(),
+  currency: text("currency").notNull().default("INR"),
+  status: text("status").notNull(),
+  htmlContent: text("html_content"),
+  createdAt: timestamp("created_at")
+    .$defaultFn(() => new Date())
+    .notNull(),
+  updatedAt: timestamp("updated_at")
+    .$defaultFn(() => new Date())
+    .notNull(),
+});
+
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
   assets: many(asset),
+  payments: many(payment),
+  purchases: many(purchase),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -146,5 +201,40 @@ export const assetRelations = relations(asset, ({ one, many }) => ({
   category: one(category, {
     fields: [asset.categoryId],
     references: [category.id],
+  }),
+  purchases: many(purchase),
+}));
+
+export const paymentRelations = relations(payment, ({ one, many }) => ({
+  user: one(user, {
+    fields: [payment.userId],
+    references: [user.id],
+  }),
+  purchases: many(purchase),
+}));
+
+export const purchaseRelations = relations(purchase, ({ one }) => ({
+  asset: one(asset, {
+    fields: [purchase.assetId],
+    references: [asset.id],
+  }),
+  user: one(user, {
+    fields: [purchase.userId],
+    references: [user.id],
+  }),
+  payment: one(payment, {
+    fields: [purchase.paymentId],
+    references: [payment.id],
+  }),
+}));
+
+export const invoiceRelations = relations(invoice, ({ one }) => ({
+  purchasse: one(purchase, {
+    fields: [invoice.purchaseId],
+    references: [purchase.id],
+  }),
+  user: one(user, {
+    fields: [invoice.userId],
+    references: [user.id],
   }),
 }));
