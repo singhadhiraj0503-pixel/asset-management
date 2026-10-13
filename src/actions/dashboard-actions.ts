@@ -68,11 +68,13 @@ export const uploadAssetAction = async (formData: FormData) => {
 
 export const getUserAssetsAction = async (userId: string) => {
   try {
-    await db
+    const assets = await db
       .select()
       .from(asset)
       .where(eq(asset.userId, userId))
       .orderBy(asset.createdAt);
+
+    return assets;
   } catch (error) {
     return [];
   }
