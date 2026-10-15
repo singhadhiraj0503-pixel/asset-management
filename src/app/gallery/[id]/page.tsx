@@ -1,4 +1,5 @@
 import { getAssetByIdAction } from "@/actions/dashboard-actions";
+import { createPaypalOrderAction } from "@/actions/payment-actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -21,6 +22,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import React, { Suspense } from "react";
+import { toast } from "sonner";
 
 interface GalleryDetailsPageProps {
   params: Promise<{ id: string }>;
@@ -74,6 +76,19 @@ const GalleryContent = async ({ params }: GalleryDetailsPageProps) => {
   const hasPurchasedAsset = false;
 
   const isApproved = asset.isApproved === "approved";
+
+  const handlePurchase = async () => {
+    "use server";
+    const result = await createPaypalOrderAction(id);
+
+    if (result.alreadyPurchased) {
+      redirect(`/gallery/${id}?success=true`);
+    }
+
+    if (result.approvalLink) {
+      redirect(result.approvalLink);
+    }
+  };
 
   return (
     <main className="min-h-screen bg-background text-foreground">
@@ -336,13 +351,13 @@ const GalleryContent = async ({ params }: GalleryDetailsPageProps) => {
                         </a>
                       </Button>
                     ) : (
-                      <form action="">
+                      <form action={handlePurchase}>
                         <Button
                           type="submit"
                           className="cursor-pointer h-12 w-full bg-emerald-500 font-medium text-black hover:bg-emerald-400"
                         >
                           <ShoppingCart className="mr-2 size-5" />
-                          Purchase Now · 20rs
+                          Purchase Now
                         </Button>
                       </form>
                     )
