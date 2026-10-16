@@ -156,7 +156,7 @@ export const invoice = pgTable("invoice", {
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
   amount: integer("amount").notNull(),
-  currency: text("currency").notNull().default("INR"),
+  currency: text("currency").notNull().default("USD"),
   status: text("status").notNull(),
   htmlContent: text("html_content"),
   createdAt: timestamp("created_at")
