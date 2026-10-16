@@ -1,11 +1,15 @@
 import { getAssetByIdAction } from "@/actions/dashboard-actions";
-import { createPaypalOrderAction } from "@/actions/payment-actions";
+import {
+  createPaypalOrderAction,
+  hasUserPurchasedAssetAction,
+} from "@/actions/payment-actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { auth } from "@/lib/auth";
 import {
   ArrowLeft,
+  CheckCheck,
   CheckCircle2,
   Clock3,
   Download,
@@ -26,9 +30,17 @@ import { toast } from "sonner";
 
 interface GalleryDetailsPageProps {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{
+    success?: string;
+    canceled?: string;
+    error?: string;
+  }>;
 }
 
-const GalleryDetailsPage = ({ params }: GalleryDetailsPageProps) => {
+const GalleryDetailsPage = ({
+  params,
+  searchParams,
+}: GalleryDetailsPageProps) => {
   return (
     <Suspense
       fallback={
@@ -37,14 +49,17 @@ const GalleryDetailsPage = ({ params }: GalleryDetailsPageProps) => {
         </div>
       }
     >
-      <GalleryContent params={params} />
+      <GalleryContent params={params} searchParams={searchParams} />
     </Suspense>
   );
 };
 
 export default GalleryDetailsPage;
 
-const GalleryContent = async ({ params }: GalleryDetailsPageProps) => {
+const GalleryContent = async ({
+  params,
+  searchParams,
+}: GalleryDetailsPageProps) => {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -73,7 +88,9 @@ const GalleryContent = async ({ params }: GalleryDetailsPageProps) => {
     : "U";
 
   // Keep the existing purchase-state logic unchanged.
-  const hasPurchasedAsset = false;
+  const hasPurchasedAsset = session?.user?.id
+    ? await hasUserPurchasedAssetAction(id)
+    : false;
 
   const isApproved = asset.isApproved === "approved";
 
@@ -89,6 +106,12 @@ const GalleryContent = async ({ params }: GalleryDetailsPageProps) => {
       redirect(result.approvalLink);
     }
   };
+
+  const { success, canceled, error } = await searchParams;
+
+  const isPurchaseSuccessful = success === "true";
+  const isPurchaseCanceled = canceled === "true";
+  const isPurchaseFailed = error === "payment_failed";
 
   return (
     <main className="min-h-screen bg-background text-foreground">
@@ -114,6 +137,42 @@ const GalleryContent = async ({ params }: GalleryDetailsPageProps) => {
             Asset ID: <span className="font-medium text-foreground">{id}</span>
           </Badge>
         </div>
+
+        {isPurchaseSuccessful && (
+          <div
+            role="status"
+            className="mb-6 flex items-start gap-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-4 text-emerald-600 dark:text-emerald-400"
+          >
+            <CheckCheck className="mt-0.5 size-5 shrink-0" />
+
+            <div>
+              <p className="font-semibold">Purchase successful!</p>
+              <p className="mt-1 text-sm">
+                Your payment was completed successfully. You can now download
+                this asset.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {isPurchaseCanceled && (
+          <div
+            role="status"
+            className="mb-6 rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 text-amber-700 dark:text-amber-300"
+          >
+            Your PayPal checkout was canceled. You can try purchasing the asset
+            again.
+          </div>
+        )}
+
+        {isPurchaseFailed && (
+          <div
+            role="alert"
+            className="mb-6 rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-red-700 dark:text-red-300"
+          >
+            Payment could not be completed. Please try again.
+          </div>
+        )}
 
         {/* Main content */}
         <div className="grid items-start gap-7 lg:grid-cols-[minmax(0,1.8fr)_minmax(320px,0.9fr)] xl:gap-10">
@@ -342,7 +401,7 @@ const GalleryContent = async ({ params }: GalleryDetailsPageProps) => {
                         className="cursor-pointer h-12 w-full bg-emerald-500 font-medium text-black hover:bg-emerald-400"
                       >
                         <a
-                          href={asset.fileUrl}
+                          href={`/api/download/${id}`}
                           download
                           className="flex items-center"
                         >
