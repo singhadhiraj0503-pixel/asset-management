@@ -60,7 +60,7 @@ const PurchasesPage = async () => {
                     {new Date(purchase.createdAt).toLocaleDateString()}
                   </p>
                 </div>
-                <div>
+                <div className="flex gap-5">
                   <Button size={"sm"} asChild>
                     <a
                       href={`/api/download/${asset.id}`}
