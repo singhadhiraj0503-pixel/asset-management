@@ -8,6 +8,7 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
+import { createInvoiceAction } from "./invoice-actions";
 
 export const createPaypalOrderAction = async (assetId: string) => {
   const session = await auth.api.getSession({
@@ -184,6 +185,10 @@ export const recordPurchaseAction = async (
     });
 
     // create invoice later
+    const invoiceResult = await createInvoiceAction(purchaseUuid);
+    if (!invoiceResult.success) {
+      console.error("Failed to create invoice");
+    }
 
     revalidatePath(`/gallery/${assetId}`);
     revalidatePath(`/dashboard/purchases`);
