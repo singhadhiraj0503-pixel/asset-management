@@ -11,6 +11,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import React, { Suspense } from "react";
 
+export const instant = false;
+
 interface GalleryPageProps {
   searchParams: Promise<{
     category?: string;
@@ -50,7 +52,7 @@ const GalleryContent = async ({ searchParams }: GalleryPageProps) => {
 
   const [categories, assets] = await Promise.all([
     getCategoriesAction(),
-    getPublicAssetsAction(categoryId),
+    getPublicAssetsAction(categoryId ?? 0),
   ]);
 
   return (
@@ -62,7 +64,6 @@ const GalleryContent = async ({ searchParams }: GalleryPageProps) => {
           className="mb-10 mt-10 flex flex-wrap items-center gap-2 sm:gap-3"
         >
           <Button
-            asChild
             variant="ghost"
             className={`h-9 rounded-full border-0 px-5 text-sm font-medium transition-colors ${
               !categoryId
@@ -79,7 +80,6 @@ const GalleryContent = async ({ searchParams }: GalleryPageProps) => {
             return (
               <Button
                 key={category.id}
-                asChild
                 variant="ghost"
                 className={`h-9 rounded-full border-0 px-5 text-sm font-medium transition-colors ${
                   isActive
@@ -105,7 +105,7 @@ const GalleryContent = async ({ searchParams }: GalleryPageProps) => {
             </p>
 
             {categoryId && (
-              <Button asChild variant="outline" className="mt-5 rounded-full">
+              <Button variant="outline" className="mt-5 rounded-full">
                 <Link href="/gallery">View all assets</Link>
               </Button>
             )}

@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 
+export const instant = false;
+
 const AssetApprovalPage = async () => {
   const pendingAssets = await getPendingAssetsAction();
 
@@ -164,7 +166,6 @@ const AssetApprovalPage = async () => {
                     variant="outline"
                     size="sm"
                     className="gap-2"
-                    asChild
                   >
                     <a href={asset.fileUrl} target="_blank" rel="noreferrer">
                       <Info className="size-4" />

@@ -41,7 +41,7 @@ type Category = {
 type FormState = {
   title: string;
   description: string;
-  categoryId: string;
+  categoryId: string | null;
   file: File | null;
 };
 
@@ -85,7 +85,7 @@ const UploadAsset = ({ categories }: UploadDialogProps) => {
     setFormState((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleCategoryChange = (value: string) => {
+  const handleCategoryChange = (value: string | null) => {
     setFormState((prev) => ({ ...prev, categoryId: value }));
   };
 
@@ -295,7 +295,7 @@ const UploadAsset = ({ categories }: UploadDialogProps) => {
 
   return (
     <Dialog open={open} onOpenChange={handleDialogChange}>
-      <DialogTrigger asChild>
+      <DialogTrigger>
         <Button className="bg-emerald-600 text-white shadow-sm transition-colors hover:bg-emerald-500">
           <Plus className="mr-2 size-4" />
           Upload Asset

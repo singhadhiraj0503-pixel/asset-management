@@ -14,6 +14,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import React from "react";
 
+export const instant = false;
+
 const LoginPage = async () => {
   const session = await auth.api.getSession({
     headers: await headers(),

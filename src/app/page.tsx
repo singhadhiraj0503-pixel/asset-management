@@ -64,7 +64,6 @@ const Home = () => {
           </p>
 
           <Button
-            asChild
             variant="outline"
             className="mt-8 h-14 rounded-xl border-emerald-500/50 bg-emerald-500/5 px-8 text-base font-medium text-emerald-500 shadow-[0_0_25px_rgba(16,185,129,0.06)] transition-all hover:border-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-400"
           >

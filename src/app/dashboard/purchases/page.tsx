@@ -18,6 +18,8 @@ import { headers } from "next/headers";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 
+export const instant = false;
+
 const PurchasesPage = async () => {
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -211,7 +213,7 @@ const PurchasesPage = async () => {
 
                 {/* Existing download and invoice actions */}
                 <div className="flex w-full shrink-0 flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
-                  <Button size="sm" asChild className="flex-1 sm:flex-none">
+                  <Button size="sm" className="flex-1 sm:flex-none">
                     <a
                       href={`/api/download/${asset.id}`}
                       download
@@ -226,7 +228,6 @@ const PurchasesPage = async () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      asChild
                       className="flex-1 sm:flex-none"
                     >
                       <a

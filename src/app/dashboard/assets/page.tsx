@@ -7,6 +7,8 @@ import UploadAsset from "@/components/dashboard/upload-asset";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 
+export const instant = false;
+
 const AssetsPage = async () => {
   const session = await auth.api.getSession({
     headers: await headers(),

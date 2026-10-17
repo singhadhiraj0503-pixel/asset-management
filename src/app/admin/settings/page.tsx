@@ -15,8 +15,13 @@ import {
   ChevronRight,
 } from "lucide-react";
 import Link from "next/link";
+import { connection } from "next/server";
+
+export const instant = false;
 
 const SettingsPage = async () => {
+  await connection();
+
   const [categories, userCount, assetsCount] = await Promise.all([
     getAllCategoriesAction(),
     getTotalUsersCountAction(),

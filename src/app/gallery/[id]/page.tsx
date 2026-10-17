@@ -28,6 +28,8 @@ import { notFound, redirect } from "next/navigation";
 import React, { Suspense } from "react";
 import { toast } from "sonner";
 
+export const instant = false;
+
 interface GalleryDetailsPageProps {
   params: Promise<{ id: string }>;
   searchParams: Promise<{
@@ -119,7 +121,6 @@ const GalleryContent = async ({
         {/* Navigation and asset identifier */}
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4 mt-10">
           <Button
-            asChild
             variant="ghost"
             className="gap-2 rounded-lg px-3 text-muted-foreground hover:text-foreground"
           >
@@ -396,10 +397,7 @@ const GalleryContent = async ({
                         </div>
                       </div>
                     ) : hasPurchasedAsset ? (
-                      <Button
-                        asChild
-                        className="cursor-pointer h-12 w-full bg-emerald-500 font-medium text-black hover:bg-emerald-400"
-                      >
+                      <Button className="cursor-pointer h-12 w-full bg-emerald-500 font-medium text-black hover:bg-emerald-400">
                         <a
                           href={`/api/download/${id}`}
                           download
@@ -421,10 +419,7 @@ const GalleryContent = async ({
                       </form>
                     )
                   ) : (
-                    <Button
-                      asChild
-                      className="h-12 w-full bg-emerald-500 font-medium text-black hover:bg-emerald-400"
-                    >
+                    <Button className="h-12 w-full bg-emerald-500 font-medium text-black hover:bg-emerald-400">
                       <Link href="/login">Sign in to purchase</Link>
                     </Button>
                   )}

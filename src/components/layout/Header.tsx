@@ -139,7 +139,7 @@ const Header = () => {
         <div className="flex shrink-0 items-center gap-3 sm:gap-4">
           {/* Theme toggle */}
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+            <DropdownMenuTrigger>
               <Button
                 type="button"
                 variant="outline"
@@ -175,7 +175,7 @@ const Header = () => {
           {/* User account */}
           {!isPending && user ? (
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+              <DropdownMenuTrigger>
                 <button
                   type="button"
                   aria-label="Open user account menu"
@@ -252,7 +252,6 @@ const Header = () => {
             </DropdownMenu>
           ) : !isPending ? (
             <Button
-              asChild
               size="sm"
               className="bg-emerald-500 text-black hover:bg-emerald-400"
             >
